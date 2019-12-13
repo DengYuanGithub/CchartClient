@@ -187,6 +187,8 @@ void CCchartClientDlg::OnBnClickedConnectBnt()
 	int iPort = _ttoi(strPort);
 	//int iIP = _ttoi(strIP);
 
+
+	//SOCKET
 	//创建socket 对象
 	m_client = new CMySocket;
 

@@ -9,6 +9,7 @@
 #include "afxdialogex.h"
 #include <atlbase.h>
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -79,6 +80,7 @@ END_MESSAGE_MAP()
 BOOL CCchartClientDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
+	AfxSocketInit();		//套接字初始化
 
 	// 将“关于...”菜单项添加到系统菜单中。
 
@@ -169,12 +171,11 @@ HCURSOR CCchartClientDlg::OnQueryDragIcon()
 void CCchartClientDlg::OnBnClickedConnectBnt()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	TRACE("[##]OnBnClickedConnectBnt");
 	CString strPort, strIP;		//存储端口和ip
-
-	//获取端口和IP文本中的内容控件中的内容
-	GetDlgItem(IDC_PORT_EDIT)->SetWindowTextW(strPort);
-	GetDlgItem(IDC_IPADDRESS)->SetWindowTextW(strIP);
+	//TRACE("##################################m_client Create Success");
+	//获取端口和IP文本中的内容控件中的内容	//SetWindowTextW
+	GetDlgItem(IDC_PORT_EDIT)->GetWindowText(strPort);
+	GetDlgItem(IDC_IPADDRESS)->GetWindowText(strIP);
 
 	//CString 转 char * ; uses conversion
 	USES_CONVERSION;
@@ -184,16 +185,26 @@ void CCchartClientDlg::OnBnClickedConnectBnt()
 
 	//将IP地址字符串转换为数字
 	int iPort = _ttoi(strPort);
-	int iIP = _ttoi(strIP);
+	//int iIP = _ttoi(strIP);
 
 	//创建socket 对象
 	m_client = new CMySocket;
 
 	//创建套接字
-	m_client->Create();
+	if (!m_client->Create()) {
+		TRACE("#######################################\n");
+		TRACE("\nm_client Create error %d", GetLastError() );
+		return;
+	}
+	else {
+
+		TRACE("#######################################\n m_client   Create  Success  OK");
+	}
 
 	//建立连接
 	m_client->Connect(strIP, iPort);
+	TRACE("#######################################\n  Connect endl ");
+
 }
 
 //mark

@@ -11,10 +11,11 @@ CMySocket::~CMySocket()
 {
 }
 
-//调用连接
+//连接回调
 void CMySocket::OnConnect(int nErrorCode)
-{
-	TRACE("####OnConnect");
+{	
+
+	TRACE("####################\n Client sock OnConnect  OK");
 	//获取主对话框
 	CCchartClientDlg* dlg = (CCchartClientDlg *)AfxGetApp()->GetMainWnd();
 	CString str;
@@ -26,11 +27,10 @@ void CMySocket::OnConnect(int nErrorCode)
 	//在 历史对话框中显示
 	dlg->m_list.AddString(str);
 
-
 }
 
 //收到连接
 void CMySocket::OnReceive(int nErrorCode)
 {
-	TRACE("####OnConnect");
+	TRACE("##########################\nOnConnect");
 }

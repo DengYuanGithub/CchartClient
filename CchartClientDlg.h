@@ -4,6 +4,7 @@
 
 #pragma once
 #include "CMySocket.h"
+#define  SEND_CLINE_BUF  1024
 
 // CCchartClientDlg 对话框
 class CCchartClientDlg : public CDialogEx
@@ -36,7 +37,8 @@ public:
 	afx_msg void OnBnClickedDisconectBnt();
 	CMySocket* m_client;	//Sock 对象
 	CListBox m_list;		//历史记录控件
-	CTime	m_time;			//时间
 	CEdit   m_input;		//编辑发送控件
 	afx_msg void OnEnChangePortEdit();
+	afx_msg void OnBnClickedSendBtn();
+	CString CatShowString(CString strInfo, CString strMsg); //消息发送
 };

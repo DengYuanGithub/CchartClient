@@ -15,22 +15,40 @@ CMySocket::~CMySocket()
 void CMySocket::OnConnect(int nErrorCode)
 {	
 
-	TRACE("####################\n Client sock OnConnect  OK");
+	TRACE("###   Client sock OnConnect  OK");
 	//获取主对话框
 	CCchartClientDlg* dlg = (CCchartClientDlg *)AfxGetApp()->GetMainWnd();
-	CString str;
 
-	//获取当前实时时间,并且打印连接
-	dlg->m_time = CTime::GetCurrentTime();
-	str = dlg->m_time.Format("%x");
-	str += _T("与服务器连接成功");
-	//在 历史对话框中显示
-	dlg->m_list.AddString(str);
+	CString  strShow;
+	CString  strInfo = _T("与服务器连接成功");
+
+	strShow = dlg->CatShowString(strInfo, _T("") );
+
+	dlg->m_list.AddString(strShow);
 
 }
 
 //收到连接
 void CMySocket::OnReceive(int nErrorCode)
 {
-	TRACE("##########################\nOnConnect");
+	TRACE("###   Clinet  Receive OK ");
+	CCchartClientDlg* dlg = (CCchartClientDlg*)AfxGetApp()->GetMainWnd();
+
+	//接收数据
+	char szRecvBuf[SEND_CLINE_BUF] = { 0 };
+	Receive(szRecvBuf, SEND_CLINE_BUF, 0);
+
+	//数据类型转换
+	USES_CONVERSION;
+	CString strRecvMsg = A2T(szRecvBuf);
+
+	CString strShow;
+	CString strInfo = _T("服务端: ");
+
+
+	strShow = dlg->CatShowString(strInfo, strRecvMsg );
+
+	dlg->m_list.AddString(strShow);
+
+	CAsyncSocket::OnReceive(nErrorCode);
 }

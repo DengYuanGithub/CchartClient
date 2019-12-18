@@ -10,6 +10,7 @@
 #include <atlbase.h>
 
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -72,6 +73,7 @@ BEGIN_MESSAGE_MAP(CCchartClientDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CONNECT_BNT, &CCchartClientDlg::OnBnClickedConnectBnt)
 	ON_BN_CLICKED(IDC_DISCONECT_BNT, &CCchartClientDlg::OnBnClickedDisconectBnt)
 	ON_EN_CHANGE(IDC_PORT_EDIT, &CCchartClientDlg::OnEnChangePortEdit)
+	ON_BN_CLICKED(IDC_SEND_BTN, &CCchartClientDlg::OnBnClickedSendBtn)
 END_MESSAGE_MAP()
 //mark
 
@@ -178,7 +180,8 @@ void CCchartClientDlg::OnBnClickedConnectBnt()
 	GetDlgItem(IDC_IPADDRESS)->GetWindowText(strIP);
 
 	//CString 转 char * ; uses conversion
-	USES_CONVERSION;
+	USES_CONVERSION;	//宏声明
+	// LPCSTR 声明  typedef const CHAR * LPSTR
 	LPCSTR szPort = (LPSTR)T2A(strPort);
 	LPCSTR szIP = (LPSTR)T2A(strIP);
 	TRACE("szPORT=%S, IP=%S", szPort, szIP);
@@ -194,18 +197,20 @@ void CCchartClientDlg::OnBnClickedConnectBnt()
 
 	//创建套接字
 	if (!m_client->Create()) {
-		TRACE("#######################################\n");
-		TRACE("\nm_client Create error %d", GetLastError() );
+		TRACE("###  m_client Create error %d", GetLastError() );
 		return;
 	}
 	else {
 
-		TRACE("#######################################\n m_client   Create  Success  OK");
+		TRACE("###  m_client   Create  Success  OK");
 	}
 
 	//建立连接
-	m_client->Connect(strIP, iPort);
-	TRACE("#######################################\n  Connect endl ");
+	if (m_client->Connect(strIP, iPort) != SOCKET_ERROR ) {
+		TRACE("m_client Connect error %d", GetLastError());
+		return;
+	}
+
 
 }
 
@@ -225,4 +230,51 @@ void CCchartClientDlg::OnEnChangePortEdit()
 	// 同时将 ENM_CHANGE 标志“或”运算到掩码中。
 
 	// TODO:  在此添加控件通知处理程序代码
+}
+
+//消息发送优化
+CString CCchartClientDlg::CatShowString(CString strInfo, CString strMsg) {
+
+	CTime tmNow;
+	CString strTime;	//保存当前时间
+
+	tmNow = CTime::GetCurrentTime();
+	strTime = tmNow.Format("%X");
+
+	CString strShow;		//返回内容
+	// 时间  我: 内容
+	strShow = strTime + strShow;
+	strShow += strInfo;
+	strShow += strMsg;
+
+	return strShow;
+
+
+}
+
+//发送按钮
+void CCchartClientDlg::OnBnClickedSendBtn()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	//获取编辑对话框中的内容
+	CString strTmpMsg;
+	GetDlgItem(IDC_SENDMASG_EDIT)->GetWindowTextW(strTmpMsg);
+
+	//将获取的字符串内容转换成 char * 类型
+	USES_CONVERSION;
+	char* szSendBuf = T2A(strTmpMsg);
+
+	//发送消息
+	m_client->Send(szSendBuf, SEND_CLINE_BUF, 0);
+
+	//发送内容显示
+	CString  strShow;
+	CString  strInfo = _T("我: ");
+	
+	strShow = CatShowString(strInfo, strTmpMsg);
+	m_list.AddString(strShow);
+	UpdateData(FALSE);
+
+	GetDlgItem(IDC_SENDMASG_EDIT)->SetWindowTextW(_T(" "));
+
 }

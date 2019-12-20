@@ -74,6 +74,9 @@ BEGIN_MESSAGE_MAP(CCchartClientDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_DISCONECT_BNT, &CCchartClientDlg::OnBnClickedDisconectBnt)
 	ON_EN_CHANGE(IDC_PORT_EDIT, &CCchartClientDlg::OnEnChangePortEdit)
 	ON_BN_CLICKED(IDC_SEND_BTN, &CCchartClientDlg::OnBnClickedSendBtn)
+	ON_BN_CLICKED(IDC_SAVE_BTN, &CCchartClientDlg::OnBnClickedSaveBtn)
+	ON_BN_CLICKED(IDC_AOUTSEND, &CCchartClientDlg::OnBnClickedAoutsend)
+	ON_BN_CLICKED(IDC_CLEARMASG_BNT, &CCchartClientDlg::OnBnClickedClearmasgBnt)
 END_MESSAGE_MAP()
 //mark
 
@@ -106,6 +109,7 @@ BOOL CCchartClientDlg::OnInitDialog()
 
 	// 设置此对话框的图标。  当应用程序主窗口不是对话框时，框架将自动
 	//  执行此操作
+	
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
@@ -114,7 +118,38 @@ BOOL CCchartClientDlg::OnInitDialog()
 	//IP文本编辑库控件
 	GetDlgItem(IDC_IPADDRESS)->SetWindowText(_T("127.0.0.1"));
 
-	// TODO: 在此添加额外的初始化代码
+	//从配置文件中获取昵称
+	WCHAR wszName[MAX_PATH] = { 0 };	//昵称
+	//当前路劲保存,MAX_PATH为微软系统最大路径
+	WCHAR strPath[MAX_PATH] = { 0 };
+
+	//获取当前程序路径并且保存到字符串中
+	GetCurrentDirectoryW(MAX_PATH, strPath);
+	TRACE("###strPath = %ls", strPath);
+
+	CString strFilePath;	//文件路径字符串
+	strFilePath.Format(L"%ls//Test.ini", strPath);	//配置文件路径
+
+	//获取配置文件的昵称和内容 参数: 项名  见名  NULL, 文件内容	存储变量  路径最大长度  文件路径
+	DWORD dwNum = GetPrivateProfileStringW(_T("Client"), _T("NAME"), NULL, 
+		wszName, MAX_PATH, strFilePath);
+
+	TRACE("### wszName = %ls", wszName);
+	//如果未读取到内容
+	if (dwNum > 0) {
+		//将读取到的昵称写到编辑控件中
+		SetDlgItemText(IDC_NAME_EDIT, wszName);
+		UpdateData(FALSE);
+
+	}	//则设置一个内容
+	else {
+		WritePrivateProfileStringW(_T("CLINET"), _T("NAME"), L"客户端: ", strFilePath);
+		SetDlgItemText(IDC_NAME_EDIT, L"客户端: ");
+		UpdateData(FALSE);
+	}
+	
+
+
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -243,8 +278,7 @@ CString CCchartClientDlg::CatShowString(CString strInfo, CString strMsg) {
 
 	CString strShow;		//返回内容
 	// 时间  我: 内容
-	strShow = strTime + strShow;
-	strShow += strInfo;
+	strShow = strTime + strInfo;
 	strShow += strMsg;
 
 	return strShow;
@@ -260,6 +294,12 @@ void CCchartClientDlg::OnBnClickedSendBtn()
 	CString strTmpMsg;
 	GetDlgItem(IDC_SENDMASG_EDIT)->GetWindowTextW(strTmpMsg);
 
+	CString strName;
+	GetDlgItemText(IDC_NAME_EDIT, strName);
+
+	strTmpMsg = strName + _T(":")+ strTmpMsg   ;
+
+
 	//将获取的字符串内容转换成 char * 类型
 	USES_CONVERSION;
 	char* szSendBuf = T2A(strTmpMsg);
@@ -269,12 +309,75 @@ void CCchartClientDlg::OnBnClickedSendBtn()
 
 	//发送内容显示
 	CString  strShow;
-	CString  strInfo = _T("我: ");
+	//CString  strInfo = _T("我: ");
 	
-	strShow = CatShowString(strInfo, strTmpMsg);
+	strShow = CatShowString(_T(""), strTmpMsg);
 	m_list.AddString(strShow);
 	UpdateData(FALSE);
 
 	GetDlgItem(IDC_SENDMASG_EDIT)->SetWindowTextW(_T(" "));
 
+}
+
+//设置昵称
+void CCchartClientDlg::OnBnClickedSaveBtn()
+{
+
+	// TODO: 在此添加控件通知处理程序代码
+	
+	CString strName;	//昵称
+	// 读取编辑昵称的文本框内容读取
+	GetDlgItemText(IDC_NAME_EDIT, strName);
+	//如果获取的昵称字符长度为0
+	if (strName.GetLength() <= 0) {
+		MessageBox(_T("昵称不能为空哦"));
+		return ;
+	}
+
+	if (IDOK == AfxMessageBox(_T("确认要修改昵称吗"), MB_OKCANCEL) ) {
+
+
+		//当前路劲保存,MAX_PATH为微软系统最大路径
+		WCHAR strPath[MAX_PATH] = { 0 };
+		//获取当前程序路径并且保存到字符串中
+		GetCurrentDirectoryW(MAX_PATH, strPath);
+		TRACE("###strPath = %ls", strPath);
+
+		CString strFilePath;	//文件路径字符串
+		strFilePath.Format(L"%ls//Test.ini", strPath);	//配置文件路径
+
+
+
+
+		//创建配置文件和写入内容   参数(项名,见名,存储的内容, 配置文件的路径
+		WritePrivateProfileStringW(_T("CLIENT"), _T("NAME"), strName, strFilePath);
+		TRACE("###strFilePath = %ls", strFilePath);
+	}
+
+
+}
+
+
+void CCchartClientDlg::OnBnClickedAoutsend()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	//如果单选按钮选中状态
+	if (((CButton*)GetDlgItem(IDC_AOUTSEND))->GetCheck()) {
+		//设置为不选中
+		((CButton*)GetDlgItem(IDC_AOUTSEND))->SetCheck(FALSE);
+	}
+	else {
+		//设置为选中
+		((CButton*)GetDlgItem(IDC_AOUTSEND))->SetCheck(TRUE);
+	}
+
+
+
+}
+
+
+void CCchartClientDlg::OnBnClickedClearmasgBnt()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_list.ResetContent();
 }

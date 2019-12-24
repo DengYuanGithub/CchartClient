@@ -65,5 +65,11 @@
     <Image Include="res\CchartClient.ico">
       <Filter>资源文件</Filter>
     </Image>
+    <Image Include="res\2.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\bg2.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -64,6 +64,7 @@ void CCchartClientDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_LIST1, m_list);
 	DDX_Control(pDX, IDC_SENDMASG_EDIT, m_input);
+	DDX_Control(pDX, IDC_COLOR_COMBO, m_CwordColor);
 }
 
 BEGIN_MESSAGE_MAP(CCchartClientDlg, CDialogEx)
@@ -75,8 +76,10 @@ BEGIN_MESSAGE_MAP(CCchartClientDlg, CDialogEx)
 	ON_EN_CHANGE(IDC_PORT_EDIT, &CCchartClientDlg::OnEnChangePortEdit)
 	ON_BN_CLICKED(IDC_SEND_BTN, &CCchartClientDlg::OnBnClickedSendBtn)
 	ON_BN_CLICKED(IDC_SAVE_BTN, &CCchartClientDlg::OnBnClickedSaveBtn)
-	ON_BN_CLICKED(IDC_AOUTSEND, &CCchartClientDlg::OnBnClickedAoutsend)
+	//ON_BN_CLICKED(IDC_AOUTSEND, &CCchartClientDlg::OnBnClickedAoutsend)
 	ON_BN_CLICKED(IDC_CLEARMASG_BNT, &CCchartClientDlg::OnBnClickedClearmasgBnt)
+	ON_BN_CLICKED(IDC_AOUTSEND_CHECK, &CCchartClientDlg::OnBnClickedAoutsendCheck)
+	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 //mark
 
@@ -148,7 +151,19 @@ BOOL CCchartClientDlg::OnInitDialog()
 		UpdateData(FALSE);
 	}
 	
+	//初始化无效控件
+	GetDlgItem(IDC_SEND_BTN)->EnableWindow(FALSE);	//发送按钮
+	GetDlgItem(IDC_DISCONECT_BNT)->EnableWindow(FALSE); //断开连接
+	GetDlgItem(IDC_AOUTSEND_CHECK)->EnableWindow(FALSE); //自动回复
+	GetDlgItem(IDC_CLEARMASG_BNT)->EnableWindow(TRUE);	//连接按钮
 
+	m_CwordColor.AddString(_T("黑色"));
+	m_CwordColor.AddString(_T("红色"));
+	m_CwordColor.AddString(_T("蓝色"));
+	m_CwordColor.AddString(_T("绿色"));
+
+	m_CwordColor.SetCurSel( 0 );	//设置该控件当前的选择
+	SetDlgItemText(IDC_COLOR_COMBO, _T("黑色"));
 
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -207,6 +222,12 @@ HCURSOR CCchartClientDlg::OnQueryDragIcon()
 
 void CCchartClientDlg::OnBnClickedConnectBnt()
 {
+	//连接成功时反置灰
+	GetDlgItem(IDC_SEND_BTN)->EnableWindow(TRUE);	//发送按钮
+	GetDlgItem(IDC_DISCONECT_BNT)->EnableWindow(TRUE); //断开连接
+	GetDlgItem(IDC_AOUTSEND_CHECK)->EnableWindow(TRUE); //自动回复
+	GetDlgItem(IDC_CONNECT_BNT)->EnableWindow(FALSE);	//连接按钮
+
 	// TODO: 在此添加控件通知处理程序代码
 	CString strPort, strIP;		//存储端口和ip
 	//TRACE("##################################m_client Create Success");
@@ -254,6 +275,25 @@ void CCchartClientDlg::OnBnClickedConnectBnt()
 void CCchartClientDlg::OnBnClickedDisconectBnt()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	//1 控件置灰
+	GetDlgItem(IDC_SEND_BTN)->EnableWindow(FALSE);	//发送按钮
+	GetDlgItem(IDC_DISCONECT_BNT)->EnableWindow(FALSE); //断开连接
+	GetDlgItem(IDC_AOUTSEND_CHECK)->EnableWindow(FALSE); //自动回复
+	GetDlgItem(IDC_CLEARMASG_BNT)->EnableWindow(TRUE);	//连接按钮
+
+	// 资源回收
+	m_client->Close();
+	if (m_client  != NULL) {	//如果还存在连接socket 对象,不等于空
+		delete m_client;
+		m_client = NULL;
+	}
+
+	//显示断开连接
+	CString  strShow;
+	strShow = CatShowString(_T(": 断开与服务器连接"), NULL);
+	m_list.AddString(strShow);
+	UpdateData(FALSE);
+
 }
 
 
@@ -357,7 +397,8 @@ void CCchartClientDlg::OnBnClickedSaveBtn()
 
 }
 
-
+//单选框取消
+/*
 void CCchartClientDlg::OnBnClickedAoutsend()
 {
 	// TODO: 在此添加控件通知处理程序代码
@@ -370,14 +411,57 @@ void CCchartClientDlg::OnBnClickedAoutsend()
 		//设置为选中
 		((CButton*)GetDlgItem(IDC_AOUTSEND))->SetCheck(TRUE);
 	}
+}
+*/
+
+void CCchartClientDlg::OnBnClickedClearmasgBnt()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_list.ResetContent();
+}
+
+
+void CCchartClientDlg::OnBnClickedAoutsendCheck()
+{
+	// TODO: 在此添加控件通知处理程序代码
+		//如果单选按钮选中状态
+	if (((CButton*)GetDlgItem(IDC_AOUTSEND_CHECK))->GetCheck()) {
+		//设置为不选中
+		((CButton*)GetDlgItem(IDC_AOUTSEND_CHECK))->SetCheck(FALSE);
+	}
+	else {
+		//设置为选中
+		((CButton*)GetDlgItem(IDC_AOUTSEND_CHECK))->SetCheck(TRUE);
+	}
 
 
 
 }
 
 
-void CCchartClientDlg::OnBnClickedClearmasgBnt()
+HBRUSH CCchartClientDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
-	// TODO: 在此添加控件通知处理程序代码
-	m_list.ResetContent();
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	CString strColor;
+	m_CwordColor.GetWindowTextW(strColor);	//获取控件当前的内容到字符串中
+
+	if (IDC_LIST1 == pWnd->GetDlgCtrlID() || IDC_SENDMASG_EDIT == pWnd->GetDlgCtrlID()  )
+	{
+		if (strColor == L"黑色") {
+			pDC->SetTextColor(RGB(0, 0, 0));
+		}
+		else if(strColor == L"红色"){
+			pDC->SetTextColor(RGB(255, 0, 0));
+		}
+		else if (strColor == L"蓝色") {
+			pDC->SetTextColor(RGB(0, 0, 255));
+		}
+		else if (strColor == L"绿色") {
+			pDC->SetTextColor(RGB(0, 255, 0));
+		}
+
+	}
+
+	return hbr;
 }

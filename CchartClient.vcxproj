@@ -213,6 +213,8 @@
     <None Include="res\CchartClient.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\2.bmp" />
+    <Image Include="res\bg2.bmp" />
     <Image Include="res\CchartClient.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

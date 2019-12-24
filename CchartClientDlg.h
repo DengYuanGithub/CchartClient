@@ -42,6 +42,9 @@ public:
 	afx_msg void OnBnClickedSendBtn();
 	CString CatShowString(CString strInfo, CString strMsg); //消息发送
 	afx_msg void OnBnClickedSaveBtn();
-	afx_msg void OnBnClickedAoutsend();
+	//afx_msg void OnBnClickedAoutsend();
 	afx_msg void OnBnClickedClearmasgBnt();
+	afx_msg void OnBnClickedAoutsendCheck();
+	CComboBox m_CwordColor;
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };

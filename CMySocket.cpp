@@ -51,7 +51,7 @@ void CMySocket::OnReceive(int nErrorCode)
 	dlg->m_list.UpdateData(FALSE);
 
 	//选中单选控件按钮
-	if (((CButton*)dlg->GetDlgItem(IDC_AOUTSEND))->GetCheck()) {
+	if (((CButton*)dlg->GetDlgItem(IDC_AOUTSEND_CHECK))->GetCheck()) {
 
 		CString  strAoutSendMsg;
 		CString  strName;
